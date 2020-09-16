@@ -31,6 +31,59 @@ def stdFor(values):
 
 
 
+# -----------------------INPUT CHECKS------------------------------
+
+def runChecks(month, monthRainfall, year):
+    print(monthRainfall)
+    dayCheckedRainfall = dayCheck(month, monthRainfall, year)
+    print(dayCheckedRainfall)
+    checkedRainfall = negativeCheck(dayCheckedRainfall)
+
+    return checkedRainfall
+    
+
+# Unnessessary if there is no chance of missing data.
+def dayCheck(month, monthRainfall, year):
+    dayCount = len(monthRainfall)
+    checkedRain = monthRainfall
+
+    if month == '1' or month == '3' or month == '5' or month == '7' or month == '8' or month == '10' or month == '11' or month == '12':
+        dayDiff = 31 - dayCount
+        if dayCount > 0:
+            for i in range(dayDiff):
+                checkedRain.append('0')
+
+    elif month == '9' or month == '4' or month == '6' or month == '11':
+        dayDiff = 30 - dayCount
+        if dayCount > 0:
+            for i in range(dayDiff):
+                checkedRain.append('0')
+            return checkedRain
+
+    elif month == '2' and year % 4 != 0:
+        dayDiff = 28 - dayCount
+        if dayCount > 0:
+            for i in range(dayDiff):
+                checkedRain.append('0')
+            return checkedRain
+
+    elif month == '2' and year % 4 == 0:
+        dayDiff = 29 - dayCount
+        if dayCount > 0:
+            for i in range(dayDiff):
+                checkedRain.append('0')
+            return checkedRain
+
+    return checkedRain
+
+def negativeCheck(monthRainfall):
+    for i in range(len(monthRainfall)):
+        if monthRainfall[i] == '':
+            monthRainfall[i].replace(monthRainfall[i], '0')
+        elif float(monthRainfall[i]) < 0:
+            monthRainfall[i].replace(monthRainfall[i], '0')
+    return monthRainfall
+
 # --------------------------PARSING--------------------------------
 
 # Returns all values entered for a given year.
@@ -41,6 +94,7 @@ def getYearData(csvfile, year):
     with open(csvfile, 'r') as file:
         # Reads data and removes '\n' from file_contents.
         file_contents = file.readlines()
+        rows = [x.replace('', '0') for x in file_contents]
         rows = [x.strip() for x in file_contents]
 
         # Seperates each row into a list by comma.
@@ -54,20 +108,20 @@ def getYearData(csvfile, year):
             rowYear = int(rawData[x][1])
             if rowYear == year:
                 yearData.append(rawData[x])
-
-    print(yearData)
     return yearData
 
-# Returns given monthly rainfall.
+# Cleans given monthly rainfall.
 def getMonthRainfall(yearData, month):
     fullMonthData = []
+    cleanData = []
+    
     for i in range(len(yearData)):
         monthFound = int(yearData[i][2])
         if monthFound == month:
             fullMonthData.append(yearData[i])
     monthRainfall = [x[4] for x in fullMonthData]
-
-    return monthRainfall
+    cleanData = runChecks(month, monthRainfall, int(fullMonthData[0][2]))
+    return cleanData
 
 
 
@@ -75,7 +129,7 @@ def getMonthRainfall(yearData, month):
 
 def getMinimum(yearData, month):
     monthData = getMonthRainfall(yearData, month)
-    minimum = 100.0   # Minimum will change
+    minimum = 1000000  # Minimum will change
 
     for i in range(len(monthData)):
         dayRainfall = monthData[i]
@@ -93,7 +147,7 @@ def getMaximum(yearData, month):
     for i in range(len(monthData)):
         dayRainfall = monthData[i]
         if dayRainfall == '':
-            maximum = 0.0
+            continue
         elif float(dayRainfall) > maximum and float(dayRainfall) > 0.0:
             maximum = float(dayRainfall)
 
@@ -105,7 +159,7 @@ def getAverage(yearData, month):
     for i in range(len(monthData)):
         dayRainfall = monthData[i]
         if dayRainfall == '':
-            sum = sum + 0.0           # Really just improves readability, shows the value of '' is 0
+            continue;  # Really just improves readability, shows the value of '' is 0
         elif float(dayRainfall) > 0.0:
             sum = sum + float(dayRainfall)
     average = sum / len(monthData)
@@ -149,11 +203,13 @@ def correlationFor(y1, y2):
     y1std, y2std = stdFor(y1), stdFor(y2)
 
     numerator = multiplyAvgDiff(y1, y1avg, y2, y2avg)
-    denom = (y1std * y2std) 
+    denom = (y1std * y2std)
     
-    corr = (numerator / denom) / 12
-
-    return corr
+    if denom == 0:
+        return 0
+    else:
+        corr = (numerator / denom) / 12
+        return corr
 
 
 
@@ -194,4 +250,3 @@ def main(csvfile, year, type):
         return statsAnalysis(csvfile, year)
     elif type == "corr":
         return corrAnalysis(csvfile, year)
-
