@@ -1,0 +1,197 @@
+'''
+    CITS1401 - Project 1
+    Student Name:       Jamie McCullough
+    Student Number      22238418
+
+'''
+# ----------------------------MATH---------------------------------
+
+# Returns average for a given list.
+def avgFor(values):
+    sum = 0
+    for i in range(len(values)):
+        element = values[i]
+        sum = sum + element
+    return sum / len(values)
+
+# Returns standard deviation for a given list.
+def stdFor(values):
+    avg = avgFor(values)
+    sqredMeans = []
+    avgMeans = []
+
+    for i in range(len(values)):
+        lessAvg = values[i] - avg
+        sqrAvg = lessAvg * lessAvg
+        sqredMeans.append(sqrAvg)
+    
+    avgMeans = avgFor(sqredMeans)
+
+    return avgMeans ** (1/2)
+
+
+
+# --------------------------PARSING--------------------------------
+
+# Returns all values entered for a given year.
+def getYearData(csvfile, year):
+    yearData = []
+    rawData = []
+
+    with open(csvfile, 'r') as file:
+        # Reads data and removes '\n' from file_contents.
+        file_contents = file.readlines()
+        rows = [x.strip() for x in file_contents]
+
+        # Seperates each row into a list by comma.
+        for i in range(1, len(rows)):
+            if rows[i] != "":
+                check = rows[i].split(',')
+                rawData.append(check)
+
+        # Adds all data relating to given year to a new list.
+        for x in range(len(rawData)):
+            rowYear = int(rawData[x][1])
+            if rowYear == year:
+                yearData.append(rawData[x])
+
+    print(yearData)
+    return yearData
+
+# Returns given monthly rainfall.
+def getMonthRainfall(yearData, month):
+    fullMonthData = []
+    for i in range(len(yearData)):
+        monthFound = int(yearData[i][2])
+        if monthFound == month:
+            fullMonthData.append(yearData[i])
+    monthRainfall = [x[4] for x in fullMonthData]
+
+    return monthRainfall
+
+
+
+# --------------------------STATISTICS--------------------------------
+
+def getMinimum(yearData, month):
+    monthData = getMonthRainfall(yearData, month)
+    minimum = 100.0   # Minimum will change
+
+    for i in range(len(monthData)):
+        dayRainfall = monthData[i]
+        if dayRainfall == '':
+            continue
+        elif float(dayRainfall) < minimum and float(dayRainfall) > 0.0:
+            minimum = float(dayRainfall)
+
+    return minimum
+
+def getMaximum(yearData, month):
+    monthData = getMonthRainfall(yearData, month)
+    maximum = 0.0
+
+    for i in range(len(monthData)):
+        dayRainfall = monthData[i]
+        if dayRainfall == '':
+            maximum = 0.0
+        elif float(dayRainfall) > maximum and float(dayRainfall) > 0.0:
+            maximum = float(dayRainfall)
+
+    return maximum
+
+def getAverage(yearData, month):
+    monthData = getMonthRainfall(yearData, month)
+    sum = 0.0
+    for i in range(len(monthData)):
+        dayRainfall = monthData[i]
+        if dayRainfall == '':
+            sum = sum + 0.0           # Really just improves readability, shows the value of '' is 0
+        elif float(dayRainfall) > 0.0:
+            sum = sum + float(dayRainfall)
+    average = sum / len(monthData)
+
+    return average
+
+def getStdDev(yearData, month):
+    monthData = getMonthRainfall(yearData, month)
+    mean = getAverage(yearData, month)
+    meanRemovedRain = []
+
+    for i in range(len(monthData)):
+        dayRainfall = monthData[i]
+        if dayRainfall == '':
+            lessMean = 0 - mean
+            sqredMean = lessMean * lessMean
+            meanRemovedRain.append(sqredMean)
+        else:
+            lessMean = float(dayRainfall) - mean
+            sqredMean = lessMean * lessMean
+            meanRemovedRain.append(sqredMean)
+    average = avgFor(meanRemovedRain)
+
+    return average ** (1/2)
+
+
+
+# --------------------------CORRELATION-------------------------------
+
+def multiplyAvgDiff(y1, y1avg, y2, y2avg):
+    sum = 0
+    for i in range(12):
+        diff1 = y1[i] - y1avg
+        diff2 = y2[i] - y2avg
+        sum = sum + diff1 * diff2
+    return sum
+
+
+def correlationFor(y1, y2):
+    y1avg, y2avg = avgFor(y1), avgFor(y2)
+    y1std, y2std = stdFor(y1), stdFor(y2)
+
+    numerator = multiplyAvgDiff(y1, y1avg, y2, y2avg)
+    denom = (y1std * y2std) 
+    
+    corr = (numerator / denom) / 12
+
+    return corr
+
+
+
+# --------------------------ANALYSIS-------------------------------
+
+# Returns the min, max, avg and std lists
+def statsAnalysis(csvfile, year):
+    min = []
+    max = []
+    avg = []
+    std = []
+
+    yearData = getYearData(csvfile, year)
+    for i in range(1, 13):
+        min.append(round(getMinimum(yearData, i), 4))
+        max.append(round(getMaximum(yearData, i), 4))
+        avg.append(round(getAverage(yearData, i),4))
+        std.append(round(getStdDev(yearData, i), 4))
+    return min, max, avg, std
+
+# Returns the min, max, avg, std correlation values
+def corrAnalysis(csvfile, year):
+    y1min, y1max, y1avg, y1std = statsAnalysis(csvfile, year[0])
+    y2min, y2max, y2avg, y2std = statsAnalysis(csvfile, year[1])
+
+    min = round(correlationFor(y1min, y2min), 4)
+    max = round(correlationFor(y1max, y2max), 4)
+    avg = round(correlationFor(y1avg, y2avg), 4)
+    std = round(correlationFor(y1std, y2std), 4)
+
+    return min, max, avg, std
+
+# ----------------------------MAIN---------------------------------
+
+# Handles the statistical requirements of the given arguments
+def main(csvfile, year, type):
+    if type == "stats":
+        return statsAnalysis(csvfile, year)
+    elif type == "corr":
+        return corrAnalysis(csvfile, year)
+
