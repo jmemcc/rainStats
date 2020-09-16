@@ -75,38 +75,38 @@ def getMonthRainfall(yearData, month):
 
 def getMinimum(yearData, month):
     monthData = getMonthRainfall(yearData, month)
-    minimum = 100.0   # Minimum will change
+    minimum = 100   # Minimum will change
 
     for i in range(len(monthData)):
         dayRainfall = monthData[i]
         if dayRainfall == '':
             continue
-        elif float(dayRainfall) < minimum and float(dayRainfall) > 0.0:
+        elif float(dayRainfall) < minimum and float(dayRainfall) > 0:
             minimum = float(dayRainfall)
 
     return minimum
 
 def getMaximum(yearData, month):
     monthData = getMonthRainfall(yearData, month)
-    maximum = 0.0
+    maximum = 0
 
     for i in range(len(monthData)):
         dayRainfall = monthData[i]
         if dayRainfall == '':
-            maximum = 0.0
-        elif float(dayRainfall) > maximum and float(dayRainfall) > 0.0:
+            maximum = 0
+        elif float(dayRainfall) > maximum and float(dayRainfall) > 0:
             maximum = float(dayRainfall)
 
     return maximum
 
 def getAverage(yearData, month):
     monthData = getMonthRainfall(yearData, month)
-    sum = 0.0
+    sum = 0
     for i in range(len(monthData)):
         dayRainfall = monthData[i]
         if dayRainfall == '':
-            sum = sum + 0.0           # Really just improves readability, shows the value of '' is 0
-        elif float(dayRainfall) > 0.0:
+            sum = sum + 0           # Really just improves readability, shows the value of '' is 0
+        elif float(dayRainfall) > 0:
             sum = sum + float(dayRainfall)
     average = sum / len(monthData)
 
@@ -194,4 +194,3 @@ def main(csvfile, year, type):
         return statsAnalysis(csvfile, year)
     elif type == "corr":
         return corrAnalysis(csvfile, year)
-
