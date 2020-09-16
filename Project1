@@ -1,11 +1,10 @@
-'''
+''
     CITS1401 - Project 1
     Student Name:       Jamie McCullough
     Student Number      22238418
 
 '''
 # ----------------------------MATH---------------------------------
-
 # Returns average for a given list.
 def avgFor(values):
     sum = 0
@@ -34,11 +33,7 @@ def stdFor(values):
 # -----------------------INPUT CHECKS------------------------------
 
 def runChecks(month, monthRainfall, year):
-    print(monthRainfall)
-    dayCheckedRainfall = dayCheck(month, monthRainfall, year)
-    print(dayCheckedRainfall)
-    checkedRainfall = negativeCheck(dayCheckedRainfall)
-
+    checkedRainfall = negativeCheck(monthRainfall)
     return checkedRainfall
     
 
@@ -47,41 +42,39 @@ def dayCheck(month, monthRainfall, year):
     dayCount = len(monthRainfall)
     checkedRain = monthRainfall
 
-    if month == '1' or month == '3' or month == '5' or month == '7' or month == '8' or month == '10' or month == '11' or month == '12':
+    if month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 10 or month == 11 or month == 12:
         dayDiff = 31 - dayCount
         if dayCount > 0:
             for i in range(dayDiff):
-                checkedRain.append('0')
+                checkedRain.append(0.0)
 
-    elif month == '9' or month == '4' or month == '6' or month == '11':
+    elif month == 9 or month == 4 or month == 6 or month == 11:
         dayDiff = 30 - dayCount
         if dayCount > 0:
             for i in range(dayDiff):
-                checkedRain.append('0')
+                checkedRain.append(0.0)
             return checkedRain
 
-    elif month == '2' and year % 4 != 0:
+    elif month == 2 and year % 4 != 0:
         dayDiff = 28 - dayCount
         if dayCount > 0:
             for i in range(dayDiff):
-                checkedRain.append('0')
+                checkedRain.append(0.0)
             return checkedRain
 
-    elif month == '2' and year % 4 == 0:
+    elif month == 2 and year % 4 == 0:
         dayDiff = 29 - dayCount
         if dayCount > 0:
             for i in range(dayDiff):
-                checkedRain.append('0')
+                checkedRain.append(0.0)
             return checkedRain
 
     return checkedRain
 
 def negativeCheck(monthRainfall):
     for i in range(len(monthRainfall)):
-        if monthRainfall[i] == '':
-            monthRainfall[i].replace(monthRainfall[i], '0')
-        elif float(monthRainfall[i]) < 0:
-            monthRainfall[i].replace(monthRainfall[i], '0')
+        if monthRainfall[i] < 0:
+            monthRainfall[i].replace(monthRainfall[i], 0)
     return monthRainfall
 
 # --------------------------PARSING--------------------------------
@@ -110,34 +103,38 @@ def getYearData(csvfile, year):
                 yearData.append(rawData[x])
     return yearData
 
-# Cleans given monthly rainfall.
 def getMonthRainfall(yearData, month):
-    fullMonthData = []
-    cleanData = []
-    
+    monthlyRainfall = []
+    year = int(yearData[0][1])
+
     for i in range(len(yearData)):
-        monthFound = int(yearData[i][2])
-        if monthFound == month:
-            fullMonthData.append(yearData[i])
-    monthRainfall = [x[4] for x in fullMonthData]
-    cleanData = runChecks(month, monthRainfall, int(fullMonthData[0][2]))
-    return cleanData
+        if int(yearData[i][2]) == month:
+            if yearData[i][4] == '':
+                monthlyRainfall.append('0')
+            else:
+                monthlyRainfall.append(yearData[i][4])
 
-
+    rainfall = [float(x) for x in monthlyRainfall]
+    
+    return runChecks(month,rainfall, year)
 
 # --------------------------STATISTICS--------------------------------
 
 def getMinimum(yearData, month):
     monthData = getMonthRainfall(yearData, month)
-    minimum = 1000000  # Minimum will change
+    minimum = 100000  # Minimum will change
+    numZeros = 0
 
     for i in range(len(monthData)):
         dayRainfall = monthData[i]
-        if dayRainfall == '':
-            continue
-        elif float(dayRainfall) < minimum and float(dayRainfall) > 0.0:
-            minimum = float(dayRainfall)
+        if dayRainfall < minimum and dayRainfall > 0.0:
+            minimum = dayRainfall
+        elif dayRainfall == 0:
+            numZeros += 1
 
+    if numZeros == len(monthData):
+        minimum = 0
+    
     return minimum
 
 def getMaximum(yearData, month):
@@ -146,45 +143,20 @@ def getMaximum(yearData, month):
 
     for i in range(len(monthData)):
         dayRainfall = monthData[i]
-        if dayRainfall == '':
-            continue
-        elif float(dayRainfall) > maximum and float(dayRainfall) > 0.0:
-            maximum = float(dayRainfall)
-
+        if dayRainfall > maximum and dayRainfall > 0.0:
+            maximum = dayRainfall
+    
     return maximum
+
 
 def getAverage(yearData, month):
     monthData = getMonthRainfall(yearData, month)
-    sum = 0.0
-    for i in range(len(monthData)):
-        dayRainfall = monthData[i]
-        if dayRainfall == '':
-            continue;  # Really just improves readability, shows the value of '' is 0
-        elif float(dayRainfall) > 0.0:
-            sum = sum + float(dayRainfall)
-    average = sum / len(monthData)
-
-    return average
+    return avgFor(monthData)
 
 def getStdDev(yearData, month):
     monthData = getMonthRainfall(yearData, month)
-    mean = getAverage(yearData, month)
-    meanRemovedRain = []
-
-    for i in range(len(monthData)):
-        dayRainfall = monthData[i]
-        if dayRainfall == '':
-            lessMean = 0 - mean
-            sqredMean = lessMean * lessMean
-            meanRemovedRain.append(sqredMean)
-        else:
-            lessMean = float(dayRainfall) - mean
-            sqredMean = lessMean * lessMean
-            meanRemovedRain.append(sqredMean)
-    average = avgFor(meanRemovedRain)
-
-    return average ** (1/2)
-
+    return stdFor(monthData)
+    
 
 
 # --------------------------CORRELATION-------------------------------
@@ -226,8 +198,9 @@ def statsAnalysis(csvfile, year):
     for i in range(1, 13):
         min.append(round(getMinimum(yearData, i), 4))
         max.append(round(getMaximum(yearData, i), 4))
-        avg.append(round(getAverage(yearData, i),4))
+        avg.append(round(getAverage(yearData, i), 4))
         std.append(round(getStdDev(yearData, i), 4))
+
     return min, max, avg, std
 
 # Returns the min, max, avg, std correlation values
