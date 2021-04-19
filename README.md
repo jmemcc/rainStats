@@ -1,6 +1,6 @@
 # Rainfall Statistical Analysis
 
-Analyses rainfall data from the Bureau of Meteorology and returns requested statistics of the given data. 
+Conducts simple analysis of rainfall data from the Bureau of Meteorology (Australia) and returns desired statistics of the given data. 
 
 ## Usage
 
@@ -18,4 +18,4 @@ If performing a correlation analysis between two years, input the years as a lis
 
 ### Last Updated
 September 18th 2020 
-(First Year)
+(First Year University Project)
